@@ -49,11 +49,10 @@ sub abc_getepg
 		warn("Getting channel program listing for $key ( $url )...\n") if ($VERBOSE);
 		die("Unable to connect to ABC. [" . $res->status_line . "]\n") if (!$res->is_success);
 		my $tmpdata;
-		#eval {
+		eval {
 			 $tmpdata = JSON->new->relaxed(1)->allow_nonref(1)->decode($res->content);
-		#	1;
-		#};
-		use Data::Dumper;print $tmpdata;
+			1;
+		};
 		$tmpdata = $tmpdata->{items};
 		if (defined($tmpdata))
 		{

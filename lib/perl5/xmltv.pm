@@ -23,7 +23,6 @@ require xmltv::sbs;
         $self->{duplicatechannels}    = undef unless $self->{duplicatechannels};
         $self->{verbose}    = 0 unless $self->{verbose};
         $self->{pretty}    = undef unless $self->{pretty};
-        $self->{output}    = undef unless $self->{output};
         my $VERBOSE = $self->{verbose};
         my $getepg = $self->{source}."_getepg";
         my $getchannels = $self->{source}."_getchannels";
@@ -53,6 +52,27 @@ require xmltv::sbs;
         return $self;
     }
 
+    sub combine {
+        my $this = shift;
+        my @list = @_;
+        #print $list;
+        $this = $list[0];
+        foreach $class (@list)
+        {
+            push(@{$this->{channels}},@{$class->{channels}});
+            push(@{$this->{epg}},@{$class->{epg}});
+        }
+
+        bless($this);
+        return $this;
+    }
+
+    sub clone {
+    my $self = shift;
+    my $copy = bless { %$self }, ref $self;
+    $register{$copy} = localtime; # Or whatever else you need to do with a new object.
+    return $copy;
+}
     sub getepg {
         my $this = shift;
         my $debug = {@_};
@@ -76,11 +96,23 @@ require xmltv::sbs;
     }
 
     sub buildxml {
+        use Data::Dumper;
         my $this = shift;
-        my $debug = {@_};
-        if (@_) {
-            $this->{verbose} = $_[0];
+        my $list = {@_};
+        if ($list->{verbose}) {
+              $this->{verbose} = 1;
         };
+        if ($list->{pretty}) {
+              $this->{pretty} = 1;
+        };
+        if ($list->{xmltv}) {
+            foreach $lists (@{$list->{xmltv}})
+            {
+                @{$this->{channels}} = (@{$this->{channels}},@{$lists->{channels}});
+                @{$this->{epg}} = (@{$this->{epg}},@{$lists->{epg}});
+            }
+        }
+
         warn("Starting to build the XML...\n") if ($this->{verbose});
         $this->{xml} = XML::Writer->new( OUTPUT => 'self', DATA_MODE => ($this->{pretty} ? 1 : 0), DATA_INDENT => ($this->{pretty} ? 8 : 0) );
         $this->{xml}->xmlDecl("ISO-8859-1");
@@ -96,7 +128,7 @@ require xmltv::sbs;
 		    $this->{xml}->emptyTag('icon', 'src' => $channel->{icon}) if (defined($channel->{icon}));
 		    $this->{xml}->endTag('channel');
 	    }
-        #printchannels(\$XML);
+
         warn("Building the EPG list...\n") if ($this->{verbose});
 	    foreach my $items (@{$this->{epg}})
 	    {
@@ -135,12 +167,19 @@ require xmltv::sbs;
 	    }
         warn("Finishing the XML...\n") if ($this->{verbose});
         $this->{xml}->endTag('tv');
-	    return;
+        #bless $this;
+	    return $this;
     }
 
     sub writexml
     {
         my $this = shift;
+        my $list = {@_};
+        print Dumper $list;
+        exit();
+        $this->{output}  = $list->{output};
+        $this->{verbose} = $list->{verbose};
+
         if (!defined $this->{output})
         {
         	warn("Finished! xmltv guide follows...\n\n") if ($this->{verbose});

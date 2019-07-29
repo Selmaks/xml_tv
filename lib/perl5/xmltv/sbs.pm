@@ -116,5 +116,5 @@ sub sbs_getepg
 
 	}
 	warn("Processed a totol of $showcount shows ...\n") if ($VERBOSE);
-	return \@tmpguidedata;
+	return @tmpguidedata;
 }
