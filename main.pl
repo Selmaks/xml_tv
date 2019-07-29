@@ -14,15 +14,17 @@ my $sbs = xmltv->new(source => 'sbs', epgdays => 7, verbose => '1') ;
 my @abcchannels = $abc->getchannels();
 my @sbschannels = $sbs->getchannels();
 
-
 my @abcepg = $abc->getepg();
 my @sbsepg = $sbs->getepg();
 
-my @channels = (@abcchannels,@sbschannels);
-my @epg = (@abcepg, @sbsepg);
+#my @channels = (@abcchannels,@sbschannels);
+#my @epg = (@abcepg, @sbsepg);
 
-print Dumper @channels;
-print Dumper @epg;
+$abc->buildxml();
+$abc->writexml();
+
+#print Dumper @channels;
+#print Dumper @epg;
 
 exit;
 
