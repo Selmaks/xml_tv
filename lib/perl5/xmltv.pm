@@ -55,13 +55,21 @@ require xmltv::sbs;
 
     sub getepg {
         my $this = shift;
+        my $debug = {@_};
+        if (@_) {
+            $this->{verbose} = $_[0];
+        };
         my $key = $this->{functions}->{getepg};
-        print "Hello $this->{source}\n";
         @{$this->{epg}} = &$key($this->{ua},$this->{epgdays},$this->{verbose});
         return @{$this->{epg}};
     }
+
     sub getchannels {
         my $this = shift;
+        my $debug = {@_};
+        if (@_) {
+            $this->{verbose} = $_[0];
+        };
         my $key = $this->{functions}->{getchannels};
         @{$this->{channels}} = &$key($this->{verbose});
         return @{$this->{channels}};
@@ -69,6 +77,10 @@ require xmltv::sbs;
 
     sub buildxml {
         my $this = shift;
+        my $debug = {@_};
+        if (@_) {
+            $this->{verbose} = $_[0];
+        };
         warn("Starting to build the XML...\n") if ($this->{verbose});
         $this->{xml} = XML::Writer->new( OUTPUT => 'self', DATA_MODE => ($this->{pretty} ? 1 : 0), DATA_INDENT => ($this->{pretty} ? 8 : 0) );
         $this->{xml}->xmlDecl("ISO-8859-1");
@@ -92,34 +104,34 @@ require xmltv::sbs;
 		my $originalairdate = "";
 
 		$this->{xml}->startTag('programme', 'start' => "$items->{start}", 'stop' => "$items->{stop}", 'channel' => "$items->{id}");
-		${$this->{xml}}->dataElement('title', sanitizeText($items->{title}));
-		${$this->{xml}}->dataElement('sub-title', sanitizeText($items->{subtitle})) if (defined($items->{subtitle}));
-		${$this->{xml}}->dataElement('desc', sanitizeText($items->{desc})) if (defined($items->{desc}));
+		$this->{xml}->dataElement('title', sanitizeText($items->{title}));
+		$this->{xml}->dataElement('sub-title', sanitizeText($items->{subtitle})) if (defined($items->{subtitle}));
+		$this->{xml}->dataElement('desc', sanitizeText($items->{desc})) if (defined($items->{desc}));
 		foreach my $category (@{$items->{category}}) {
-			${$this->{xml}}->dataElement('category', sanitizeText($category));
+			$this->{xml}->dataElement('category', sanitizeText($category));
 		}
-		${$this->{xml}}->emptyTag('icon', 'src' => $items->{url}) if (defined($items->{url}));
+		$this->{xml}->emptyTag('icon', 'src' => $items->{url}) if (defined($items->{url}));
 		if (defined($items->{season}) && defined($items->{episode}))
 		{
 			my $episodeseries = sprintf("S%0.2dE%0.2d",$items->{season}, $items->{episode});
-			${$XMLRef}->dataElement('episode-num', $episodeseries, 'system' => 'SxxExx');
+			$this->{xml}->dataElement('episode-num', $episodeseries, 'system' => 'SxxExx');
 			my $series = $items->{season} - 1;
 			my $episode = $items->{episode} - 1;
 			$series = 0 if ($series < 0);
 			$episode = 0 if ($episode < 0);
 			$episodeseries = "$series.$episode.";
-			${$XMLRef}->dataElement('episode-num', $episodeseries, 'system' => 'xmltv_ns') ;
+			$this->{xml}->dataElement('episode-num', $episodeseries, 'system' => 'xmltv_ns') ;
 		}
-		${$XMLRef}->dataElement('episode-num', $items->{originalairdate}, 'system' => 'original-air-date') if (defined($items->{originalairdate}));
-		${$XMLRef}->emptyTag('previously-shown', 'start' => $items->{previouslyshown}) if (defined($items->{previouslyshown}));
+		$this->{xml}->dataElement('episode-num', $items->{originalairdate}, 'system' => 'original-air-date') if (defined($items->{originalairdate}));
+		$this->{xml}->emptyTag('previously-shown', 'start' => $items->{previouslyshown}) if (defined($items->{previouslyshown}));
 		if (defined($items->{rating}))
 		{
-			${$XMLRef}->startTag('rating');
-			${$XMLRef}->dataElement('value', $items->{rating});
-			${$XMLRef}->endTag('rating');
+			$this->{xml}->startTag('rating');
+			$this->{xml}->dataElement('value', $items->{rating});
+			$this->{xml}->endTag('rating');
 		}
-		${$XMLRef}->emptyTag('premiere', "") if (defined($items->{premiere}));
-		${$XMLRef}->endTag('programme');
+		$this->{xml}->emptyTag('premiere', "") if (defined($items->{premiere}));
+		$this->{xml}->endTag('programme');
 	    }
         warn("Finishing the XML...\n") if ($this->{verbose});
         $this->{xml}->endTag('tv');
@@ -143,7 +155,17 @@ require xmltv::sbs;
         }
     }
 
-
+sub sanitizeText
+{
+	my $t = shift;
+    my %map = (
+	 '&' => 'and',
+    );
+    my $chars = join '', keys %map;
+	$t =~ s/([$chars])/$map{$1}/g;
+	$t =~ s/[^\040-\176]/ /g;
+	return $t;
+}
 
 
     1;

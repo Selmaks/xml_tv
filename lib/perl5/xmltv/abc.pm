@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use JSON;
 
 my %ABCRADIO;
 $ABCRADIO{"200"}{name}	= "Double J";
@@ -48,10 +49,11 @@ sub abc_getepg
 		warn("Getting channel program listing for $key ( $url )...\n") if ($VERBOSE);
 		die("Unable to connect to ABC. [" . $res->status_line . "]\n") if (!$res->is_success);
 		my $tmpdata;
-		eval {
+		#eval {
 			 $tmpdata = JSON->new->relaxed(1)->allow_nonref(1)->decode($res->content);
-			1;
-		};
+		#	1;
+		#};
+		use Data::Dumper;print $tmpdata;
 		$tmpdata = $tmpdata->{items};
 		if (defined($tmpdata))
 		{
@@ -86,4 +88,69 @@ sub abc_getepg
 	warn("Processed a totol of $showcount shows ...\n") if ($VERBOSE);
 	return @tmpguidedata;
 }
+
+sub toLocalTimeString
+{
+	my ($fulldate, $result_timezone) = @_;
+	my ($year, $month, $day, $hour, $min, $sec, $offset) = $fulldate =~ /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(.*)/;#S$1E$2$3$4$5$6$7/;
+	my ($houroffset, $minoffset);
+
+	if ($offset =~ /z/i)
+	{
+		$offset = 0;
+		$houroffset = 0;
+		$minoffset = 0;
+	}
+	else
+	{
+		($houroffset, $minoffset) = $offset =~ /(\d+):(\d+)/;
+	}
+	my $dt = DateTime->new(
+		 	year		=> $year,
+		 	month		=> $month,
+		 	day		=> $day,
+		 	hour		=> $hour,
+		 	minute		=> $min,
+		 	second		=> $sec,
+		 	nanosecond	=> 0,
+		 	time_zone	=> $offset,
+		);
+	$dt->set_time_zone(  $result_timezone );
+	my $tz = DateTime::TimeZone->new( name => $result_timezone );
+	my $localoffset = $tz->offset_for_datetime($dt);
+	$localoffset = $localoffset/3600;
+	if ($localoffset =~ /\./)
+	{
+		$localoffset =~ s/(.*)(\..*)/$1$2/;
+		$localoffset = sprintf("+%0.2d:%0.2d", $1, ($2*60));
+	} else {
+		$localoffset = sprintf("+%0.2d:00", $localoffset);
+	}
+	my $ymd = $dt->ymd;
+	my $hms = $dt->hms;
+	my $returntime = $ymd . "T" . $hms . $localoffset;
+	return $returntime;
+}
+
+sub addTime
+{
+	my ($duration, $startTime) = @_;
+	my ($year, $month, $day, $hour, $min, $sec, $offset) = $startTime =~ /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(.*)/;#S$1E$2$3$4$5$6$7/;
+		my $dt = DateTime->new(
+		 	year		=> $year,
+		 	month		=> $month,
+		 	day		=> $day,
+		 	hour		=> $hour,
+		 	minute		=> $min,
+		 	second		=> $sec,
+		 	nanosecond	=> 0,
+		 	time_zone	=> $offset,
+		);
+	my $endTime = $dt + DateTime::Duration->new( minutes => $duration );
+	my $ymd = $endTime->ymd;
+	my $hms = $endTime->hms;
+	my $returntime = $ymd . "T" . $hms . $offset;
+	return ($returntime);
+}
+
 

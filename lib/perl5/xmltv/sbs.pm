@@ -68,7 +68,6 @@ sub sbs_getchannels
 sub sbs_getepg
 {
 	my ($ua, $NUMDAYS, $VERBOSE) = @_;
-	print Dumper $NUMDAYS;
 	my $showcount = 0;
 	my @tmpguidedata;
 	foreach my $key (keys %SBSRADIO)
