@@ -175,8 +175,7 @@ require xmltv::sbs;
     {
         my $this = shift;
         my $list = {@_};
-        print Dumper $list;
-        exit();
+
         $this->{output}  = $list->{output};
         $this->{verbose} = $list->{verbose};
 

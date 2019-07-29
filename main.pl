@@ -17,7 +17,7 @@ my $guide = xmltv->new() ;
 my %xml = ($abc, $sbs);
 $guide = xmltv->buildxml(xmltv => [$abc, $sbs], verbose => 1, pretty => 1);
 
-$guide->writexml();
+$guide->writexml(output => '/tmp/out.xml');
 
 #print Dumper @channels;
 #print Dumper @epg;
