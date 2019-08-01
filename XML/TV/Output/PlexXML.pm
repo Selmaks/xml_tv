@@ -172,14 +172,14 @@ sub build_guide
 			#$guide->{$channel} = decode_json($res->content);
 			warn("Processing program guide for channel $channelid...\n") if ($VERBOSE);
 			# send over the reference to the XML object rather than using it in global scope.
-			$self->printProgramXML($channel . ".hdhomerun.com", $guide->{$channel}[0]->{Guide});
+			$self->build_programs($channel . ".hdhomerun.com", $guide->{$channel}[0]->{Guide});
 			my $size = scalar @{ $guide->{$channel}[0]->{Guide}} - 1;
 			$starttime = $guide->{$channel}[0]->{Guide}[$size]->{EndTime};
 		}
 	}
 }
 
-sub printProgramXML
+sub build_programs
 {
 	my $self = shift;
 	my ($channelid, $data) = @_;
@@ -263,6 +263,5 @@ sub printProgramXML
 		$self->plexXML->endTag('programme');
 	}
 }
-
 
 1;
