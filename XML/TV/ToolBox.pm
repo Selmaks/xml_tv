@@ -188,4 +188,31 @@ sub getTimeOffset
 	return $duration; # should be seconds (negative if before 'now')
 }
 
+sub get_duplicate_channels
+{
+	my $self = shift;
+	my @duplicates = ();
+	foreach my $dupe (@_)
+	{
+		my ($original, $dupes) = split(/=/, $dupe);
+		if (!defined $dupes || !length $dupes)
+		{
+			warn("WARNING: Ignoring --duplicate $dupe as it is not in the correct format (should be: --duplicate 6=60,61)\n");
+			next;
+		}
+		my @channels = split(/,/, $dupes);
+		if (!@channels || !scalar @channels)
+		{
+			warn("WARNING: Ignoring --duplicate $dupe as it is not in the correct format (should be: --duplicate 6=60,61,... etc)\n");
+			next;
+		}
+		push(@duplicates, $original);
+		foreach my $channel (@channels)
+		{
+			$duplicates{$channel} = $original;
+		}
+	}
+	return @duplicates;
+}
+
 1;
