@@ -11,7 +11,7 @@ use vars qw($VERSION);
 use XML::Writer;
 use Data::Dumper;
 
-my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: PD.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
+my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: PlexXML.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
 
 sub new
 {
@@ -26,6 +26,8 @@ sub new
 	$self->verbose(exists $arg{Verbose} ? $arg{Verbose} : undef);
 
 	$self->data(exists $arg{Data} ? $arg{Data} : undef); # file or stdout
+	$self->srcinfo(exists $arg{SourceInfo} ? $arg{SourceInfo} : undef);
+	$self->srcurl(exists $arg{SourceURL} ? $arg{SourceURL} : undef);
 	
 	return $self;
 }
@@ -63,13 +65,29 @@ sub data
 	return $self->{DATA};
 }
 
+sub srcinfo
+{
+	my $self = shift;
+	if (@_) {$self->{SRCINFO} = $_[0]};
+	$self->{SRCINFO} = "Powered by XMLTV.net" if (!defined $self->{SRCINFO});
+	return $self->{SRCINFO};
+}
+
+sub srcurl
+{
+	my $self = shift;
+	if (@_) {$self->{SRCURL} = $_[0]};
+	$self->{SRCURL} = "https://www.xmltv.net/" if (!defined $self->{SRCURL});
+	return $self->{SRCURL};
+}
+
 # This is the handle for the output..  PlexXML just uses 
 # XML::Writer so its quite simple, especially for the output
 sub plexXML
 {
 	my $self = shift;
 	if (@_) {$self->{PLEXXML} = $_[0]};
-	$self->{PLEXXML} = XML::Writer->new(OUTPUT => 'self', DATA_MODE => ($pretty ? 1 : 0), DATA_INDENT => ($pretty ? 8 : 0) ) if (!defined $self->{PLEXXML});
+	$self->{PLEXXML} = XML::Writer->new(OUTPUT => 'self', DATA_MODE => ($self->pretty ? 1 : 0), DATA_INDENT => ($self->pretty ? 8 : 0) ) if (!defined $self->{PLEXXML});
 	return $self->{PLEXXML};
 }
 
@@ -93,6 +111,7 @@ sub process
 	my $self = shift;
 	$self->plexXML->xmlDecl("ISO-8859-1");
 	$self->plexXML->doctype("tv", undef, "xmltv.dtd");
+	$self->plexXML->emptyTag("tv", date => time(), 'source-info-url' => $self->srcurl, 'source-info-name' => $self->srcinfo);
 	$self->plexXML->startTag('tv', 'generator-info-url' => "http://www.xmltv.org/");
 	$self->build_channels();
 	$self->build_guide();

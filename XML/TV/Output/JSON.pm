@@ -1,6 +1,6 @@
-# XML::TV::Output
+# XML::TV::Output::JSON
 
-package XML::TV::Output;
+package XML::TV::Output::JSON;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ use vars qw($VERSION);
 
 use Data::Dumper;
 
-my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: PD.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
+my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: JSON.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
 
 sub new
 {
@@ -93,16 +93,6 @@ sub data
 	if (@_) {$self->{DATA} = $_[0]};
 	$self->{DATA} = undef if (!defined $self->{DATA});
 	return $self->{DATA};
-}
-
-# Autoload or overwrite using SUPER or call direct?
-# currently call direct and pass in a datahandle to write to
-sub _format
-{
-	my $self = shift;
-	if (@_) {$self->{_FORMAT} = $_[0]};
-	$self->{_FORMAT} = XML::TV::Output::{$self->format)}->new(Data => $self->data, Format => $self->format);
-	return $self->{_FORMAT};
 }
 
 # Ok start will open files for writing, or if stdout, do absolutely nothing

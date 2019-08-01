@@ -101,7 +101,8 @@ sub _format
 {
 	my $self = shift;
 	if (@_) {$self->{_FORMAT} = $_[0]};
-	$self->{_FORMAT} = XML::TV::Output::{$self->format)}->new(Data => $self->data, Format => $self->format);
+	my $out = $self->format;
+	$self->{_FORMAT} = XML::TV::Output::$out->new(Data => $self->data, Format => $self->format);
 	return $self->{_FORMAT};
 }
 
