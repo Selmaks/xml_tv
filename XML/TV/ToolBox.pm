@@ -6,6 +6,10 @@ use strict;
 use warnings;
 use diagnostics;
 
+use DateTime;
+use DateTime::Duration;
+use DateTime::TimeZone;
+
 use vars qw($VERSION);
 
 my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: Toolbox.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
@@ -86,6 +90,102 @@ sub lwp
 		$ret->default_header( 'Accept-Charset' => 'utf-8');
 	}
 	return $ret;
+}
+
+sub sanitizeText
+{
+	my $t = shift;
+	$t =~ s/([$chars])/$map{$1}/g;
+	$t =~ s/[^\040-\176]/ /g;
+	return $t;
+}
+
+sub toLocalTimeString
+{
+	my $self = shift;
+	my ($fulldate, $result_timezone) = @_;
+	my ($year, $month, $day, $hour, $min, $sec, $offset) = $fulldate =~ /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(.*)/;#S$1E$2$3$4$5$6$7/;
+	my ($houroffset, $minoffset);
+
+	if ($offset =~ /z/i)
+	{
+		$offset = 0;
+		$houroffset = 0;
+		$minoffset = 0;
+	}
+	else
+	{
+		($houroffset, $minoffset) = $offset =~ /(\d+):(\d+)/;
+	}
+	my $dt = DateTime->new(
+			year		=> $year,
+			month		=> $month,
+			day		=> $day,
+			hour		=> $hour,
+			minute		=> $min,
+			second		=> $sec,
+			nanosecond	=> 0,
+			time_zone	=> $offset,
+		);
+	$dt->set_time_zone(  $result_timezone );
+	my $tz = DateTime::TimeZone->new( name => $result_timezone );
+	my $localoffset = $tz->offset_for_datetime($dt);
+	$localoffset = $localoffset/3600;
+	if ($localoffset =~ /\./)
+	{
+		$localoffset =~ s/(.*)(\..*)/$1$2/;
+		$localoffset = sprintf("+%0.2d:%0.2d", $1, ($2*60));
+	} else {
+		$localoffset = sprintf("+%0.2d:00", $localoffset);
+	}
+	my $ymd = $dt->ymd;
+	my $hms = $dt->hms;
+	my $returntime = $ymd . "T" . $hms . $localoffset;
+	return $returntime;
+}
+
+sub addTime
+{
+	my $self = shift;
+	my ($duration, $startTime) = @_;
+	my ($year, $month, $day, $hour, $min, $sec, $offset) = $startTime =~ /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(.*)/;#S$1E$2$3$4$5$6$7/;
+		my $dt = DateTime->new(
+			year		=> $year,
+			month		=> $month,
+			day		=> $day,
+			hour		=> $hour,
+			minute		=> $min,
+			second		=> $sec,
+			nanosecond	=> 0,
+			time_zone	=> $offset,
+		);
+	my $endTime = $dt + DateTime::Duration->new( minutes => $duration );
+	my $ymd = $endTime->ymd;
+	my $hms = $endTime->hms;
+	my $returntime = $ymd . "T" . $hms . $offset;
+	return ($returntime);
+}
+
+sub getTimeOffset
+{
+	my $self = shift;
+	my ($timezone, $time, $day) = @_;
+	my $dtc = DateTime->now(time_zone => $timezone); # create a new object in the timezone
+	my $dto = $dtc->clone; #DateTime->now(time_zone => $timezone); # create a new object in the timezone
+	#$dtc->now; # from_epoch(time())
+	#$dtc->time_zone($timezone); # set where we are working
+	my ($hour, $minute, $ampm) = $time =~ /^(\d+):(\d+)\s+(AM|PM)$/; # split it up
+	$dto->set_hour($hour);
+	# add 12 hours if PM and anything but 12 noon - 12:59pm (as this would push it into tomorrow)
+	$dto->add(hours => 12) if ($ampm eq "PM" and $hour ne 12);
+	$dto->add(days => 1) if ($day eq "tomorrow");
+	$dto->set_minute($minute);
+	$dto->set_second("00");
+	# add 12 hours if PM
+	my $duration = ($dto->epoch)-($dtc->epoch);
+	warn($dtc . " - " . $dto . "\n") if ($DEBUG);
+	warn($time . " --> " . $dtc->epoch . "-" . $dto->epoch . " = $duration\n") if ($DEBUG);
+	return $duration; # should be seconds (negative if before 'now')
 }
 
 1;
