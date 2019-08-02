@@ -11,6 +11,9 @@ use vars qw($VERSION);
 use XML::Writer;
 use Data::Dumper;
 
+# If we use this the debug/verbose accessors will be inherited
+use parent -norequire, 'Output';
+
 my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: PlexXML.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
 
 sub new
@@ -21,9 +24,9 @@ sub new
 
 	my %arg = @_;
 
-	$self->debug(exists $arg{Debug} ? $arg{Debug} : undef);
-	$self->pretty(exists $arg{Pretty} ? $arg{Pretty} : undef);
-	$self->verbose(exists $arg{Verbose} ? $arg{Verbose} : undef);
+#	$self->debug(exists $arg{Debug} ? $arg{Debug} : undef);
+#	$self->pretty(exists $arg{Pretty} ? $arg{Pretty} : undef);
+#	$self->verbose(exists $arg{Verbose} ? $arg{Verbose} : undef);
 
 	$self->data(exists $arg{Data} ? $arg{Data} : undef); # file or stdout
 	$self->srcinfo(exists $arg{SourceInfo} ? $arg{SourceInfo} : undef);
@@ -32,29 +35,29 @@ sub new
 	return $self;
 }
 
-sub debug
-{
-	my $self = shift;
-	if (@_) {$self->{DEBUG} = $_[0]};
-	$self->{DEBUG} = undef if (!defined $self->{DEBUG});
-	return $self->{DEBUG};
-}
-
-sub pretty
-{
-	my $self = shift;
-	if (@_) {$self->{PRETTY} = $_[0]};
-	$self->{PRETTY} = undef if (!defined $self->{PRETTY});
-	return $self->{PRETTY};
-}
-
-sub verbose
-{
-	my $self = shift;
-	if (@_) {$self->{VERBOSE} = $_[0]};
-	$self->{VERBOSE} = undef if (!defined $self->{VERBOSE});
-	return $self->{VERBOSE};
-}
+#sub debug
+#{
+#	my $self = shift;
+#	if (@_) {$self->{DEBUG} = $_[0]};
+#	$self->{DEBUG} = undef if (!defined $self->{DEBUG});
+#	return $self->{DEBUG};
+#}
+#
+#sub pretty
+#{
+#	my $self = shift;
+#	if (@_) {$self->{PRETTY} = $_[0]};
+#	$self->{PRETTY} = undef if (!defined $self->{PRETTY});
+#	return $self->{PRETTY};
+#}
+#
+#sub verbose
+#{
+#	my $self = shift;
+#	if (@_) {$self->{VERBOSE} = $_[0]};
+#	$self->{VERBOSE} = undef if (!defined $self->{VERBOSE});
+#	return $self->{VERBOSE};
+#}
 
 # This is the incoming data
 sub data
@@ -97,7 +100,7 @@ sub plexXML
 sub out
 {
 	my $self = shift;
-	return $self->plex;
+	return $self->plexXML;
 }
 
 # Ok when the input data is loaded, this will ensure the output is written

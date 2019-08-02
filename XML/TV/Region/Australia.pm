@@ -45,10 +45,57 @@ sub buildRegions
 	$self->regions(@{JSON->new->relaxed(1)->allow_nonref(1)->decode($data)});
 }
 
+# this should probably go into the parent..
+# the feed can contain 'Radio', 'TV' or 'Radio & TV' or 'Radio+TV' etc
+sub skip_type
+{
+	my $self = shift;
+	my $feed = shift;
+	my $feeds = %{$self->feeds};
+	my $skip = 0;
+	$skip++ if ($feeds{$feed} =~ /Radio/ && !$self->radio);
+	$skip++ if ($feeds{$feed} =~ /TV/ && !$self->tv);
+	return $skip;
+}
+
+sub getchannels
+{
+	my $self = shift;
+	my @channels = ();
+	my %feeds = %{$self->feeds};
+	foreach my $feed (keys %feeds)
+	{
+		next if ($self->skip_type($feed));
+		my $obj = $feed->new();
+		push(@channels, $obj->getchannels());
+	}
+	return @channels;
+}
+
+sub getepg
+{
+	my $self = shift;
+	my @epg = ();
+	my %feeds = %{$self->feeds};
+	foreach my $feed (keys %feeds)
+	{
+		next if ($self->skip_type($feed));
+		my $obj = $feed->new();
+		push(@epg, $obj->getepg());
+	}
+	return @epg;
+}
+
 # very simple return to get an array of modules used for the feeds
 sub feeds
 {
-	return("Australia::YourTV", "Australia::ABCRadio", "Australia::SBSRadio");
+	my %feeds = (
+			"XML::TV::Region::Australia::YourTV" => "TV",
+			"XML::TV::Region::Australia::ABCRadio" => "Radio",
+			"XML::TV::Region::Australia::SBSRadio" => "Radio",
+		    );
+	return \%feeds;
+	#return("Australia::YourTV", "Australia::ABCRadio", "Australia::SBSRadio");
 }
 	
 sub ua

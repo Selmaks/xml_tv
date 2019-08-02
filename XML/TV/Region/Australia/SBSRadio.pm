@@ -8,12 +8,17 @@ use diagnostics;
 
 use vars qw($VERSION);
 
+use parent -norequire, 'Australia';
+
 use JSON;
 use XML::TV::Toolbox;
 #use Data::Dumper;
 
 my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: SBSRadio.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
 
+# This is not meant to be called directly by the user, it's called
+# by Australia.pm (or any other region, but that's highly unlikely
+# being that it's region specificness.)
 
 # These are australia wide so can be defined statically
 my $SBSRADIO = (

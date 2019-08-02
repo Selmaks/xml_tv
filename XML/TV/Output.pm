@@ -10,6 +10,9 @@ use vars qw($VERSION);
 
 use Data::Dumper;
 
+# if we use this the debug/verbose etc will be inherited
+use parent -norequire, 'TV';
+
 my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: PD.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
 
 sub new
@@ -20,9 +23,9 @@ sub new
 
 	my %arg = @_;
 
-	$self->debug(exists $arg{Debug} ? $arg{Debug} : undef);
-	$self->pretty(exists $arg{Pretty} ? $arg{Pretty} : undef);
-	$self->verbose(exists $arg{Verbose} ? $arg{Verbose} : undef);
+#	$self->debug(exists $arg{Debug} ? $arg{Debug} : undef);
+#	$self->pretty(exists $arg{Pretty} ? $arg{Pretty} : undef);
+#	$self->verbose(exists $arg{Verbose} ? $arg{Verbose} : undef);
 
 	$self->output(exists $arg{Output} ? $arg{Output} : 'stdout'); # file or stdout
 	$self->filename(exists $arg{Filename} ? $arg{Filename} : undef);
@@ -31,29 +34,29 @@ sub new
 	return $self;
 }
 
-sub debug
-{
-	my $self = shift;
-	if (@_) {$self->{DEBUG} = $_[0]};
-	$self->{DEBUG} = undef if (!defined $self->{DEBUG});
-	return $self->{DEBUG};
-}
-
-sub pretty
-{
-	my $self = shift;
-	if (@_) {$self->{PRETTY} = $_[0]};
-	$self->{PRETTY} = undef if (!defined $self->{PRETTY});
-	return $self->{PRETTY};
-}
-
-sub verbose
-{
-	my $self = shift;
-	if (@_) {$self->{VERBOSE} = $_[0]};
-	$self->{VERBOSE} = undef if (!defined $self->{VERBOSE});
-	return $self->{VERBOSE};
-}
+#sub debug
+#{
+#	my $self = shift;
+#	if (@_) {$self->{DEBUG} = $_[0]};
+#	$self->{DEBUG} = undef if (!defined $self->{DEBUG});
+#	return $self->{DEBUG};
+#}
+#
+#sub pretty
+#{
+#	my $self = shift;
+#	if (@_) {$self->{PRETTY} = $_[0]};
+#	$self->{PRETTY} = undef if (!defined $self->{PRETTY});
+#	return $self->{PRETTY};
+#}
+#
+#sub verbose
+#{
+#	my $self = shift;
+#	if (@_) {$self->{VERBOSE} = $_[0]};
+#	$self->{VERBOSE} = undef if (!defined $self->{VERBOSE});
+#	return $self->{VERBOSE};
+#}
 
 sub output
 {

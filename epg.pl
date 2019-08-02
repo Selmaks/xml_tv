@@ -70,3 +70,5 @@ my $tools = XML::TV::ToolBox->new(
 				 );
 
 @DUPELICATE_CHANNELS = $tools->get_duplicate_channels(@dupes) if (@dupes and scalar @dupes);
+
+print $tv->out;
