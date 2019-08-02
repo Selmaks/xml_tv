@@ -8,6 +8,9 @@ use diagnostics;
 
 use vars qw($VERSION);
 
+# At this time we don't parent this to the XML::TV module as we
+# will get namespace clash and there is (currently) no need to have
+# the accessors available upstream.
 use Data::Dumper;
 
 my $VERSION = sprintf("%d.%d.%d.%d.%d.%d", q$Id: Region.pm 700 2019-05-29 15:32:08Z  $ =~ /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)Z/);
@@ -21,7 +24,6 @@ sub new
 	my %arg = @_;
 
 	$self->debug(exists $arg{Debug} ? $arg{Debug} : undef);
-	$self->pretty(exists $arg{Pretty} ? $arg{Pretty} : undef);
 	$self->verbose(exists $arg{Verbose} ? $arg{Verbose} : undef);
 	$self->country(exists $arg{Country} ? $arg{Country} : undef);
 	$self->region(exists $arg{Region} ? $arg{Region} : undef);
@@ -29,14 +31,15 @@ sub new
 	return $self;
 }
 
-sub mapping
+sub map
 {
 	my $self = shift;
 	my $country = $self->country;
+	my $region = $self->region;
 	return undef if (!defined $country);
 	# This will return the the country/region/source mapping
-	$self->region = XML::TV::Region::$country->new();
-
+	$self->region(XML::TV::Region::$country->new(Region => $self->region));
+	return $self->region;
 }
 
 sub debug
@@ -45,14 +48,6 @@ sub debug
 	if (@_) {$self->{DEBUG} = $_[0]};
 	$self->{DEBUG} = undef if (!defined $self->{DEBUG});
 	return $self->{DEBUG};
-}
-
-sub pretty
-{
-	my $self = shift;
-	if (@_) {$self->{PRETTY} = $_[0]};
-	$self->{PRETTY} = undef if (!defined $self->{PRETTY});
-	return $self->{PRETTY};
 }
 
 sub verbose

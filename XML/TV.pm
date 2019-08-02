@@ -67,6 +67,8 @@ sub source
 	return $self->{SOURCE};
 }
 
+# This holds the configured country.
+# We use it to initialise the feed.
 sub country
 {
 	my $self = shift;
@@ -75,11 +77,30 @@ sub country
 	return $self->{COUNTRY};
 }
 
+sub region
+{
+	my $self = shift;
+	if (@_) {$self->{REGION} = $_[0]};
+	$self->{REGION} = undef if (!defined $self->{REGION});
+	return $self->{REGION};
+}
+
+# if country is already set this will load the Regoin
+# module and initialise it, region doesn't have to be
+# set at this time, because the country will define what
+# regions are actually valid.  Without the country
+# it is unknown if there are regions or not.
 sub feed
 {
 	my $self = shift;
 	if (@_) {$self->{FEED} = $_[0]};
 	$self->{FEED} = undef if (!defined $self->{FEED});
+	$self->{FEED} = XML::TV::Region->new(
+						Country	=> $self->country,
+						Region	=> $self->region,
+						Verbose	=> $self->verbose,
+						Debug	=> $self->debug,
+					     ) if (defined $self->country);
 	return $self->{FEED};
 }
 

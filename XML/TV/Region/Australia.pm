@@ -24,15 +24,35 @@ sub new
 
 	$self->debug(exists $arg{Debug} ? $arg{Debug} : undef);
 	$self->verbose(exists $arg{Verbose} ? $arg{Verbose} : undef);
+	$self->region(exists $arg{Region} ? $arg{Region} : undef);
 	# If we are passed a useragent use it, otherwise initialise a new one
 	$self->ua(exists $arg{UA} ? $arg{UA} : XML::TV::Toolbox->new(Debug => $self->debug, Verbose => $self->verbose);
-
-	$self->buildRegions();
 
 	return $self;
 }
 
-# this just builds the regions array and is called on ->new()
+sub checkRegion
+{
+	my $valid = 0;
+	foreach my $r ( $self->regions )
+	{
+		if ($r->{id} eq $self->region)
+		{
+			$valid++;
+			$self->timezone($r->{timezone});
+			$self->name($r->{name});
+		}
+	}
+
+	die(      "\n"
+		. "Invalid region specified.  Please use one of the following:\n\t\t"
+		. join("\n\t\t", (map { "$_->{id}\t=\t$_->{name}" } $self->regions) )
+		. "\n\n"
+	   ) if (!$valid);
+	return $valid;
+}
+
+# this just builds the regions array and is called as soon as the region is set
 sub buildRegions
 {
 	my $url = "https://www.yourtv.com.au/guide/";
@@ -126,8 +146,38 @@ sub regions
 {
 	my $self = shift;
 	if (@_) {$self->{REGIONS} = $_[0]};
-	$self->{REGIONS} = undef if (!defined $self->{REGIONS});
+	$self->{REGIONS} = $self->buildRegions if (!defined $self->{REGIONS});
 	return $self->{REGIONS};
+}
+
+sub region
+{
+	my $self = shift;
+	if (@_)
+	{
+		if ($self->checkRegion($_[0]))
+		{
+			$self->{REGION} = $_[0];
+		}
+	}
+	$self->{REGION} = undef if (!defined $self->{REGIONS});
+	return $self->{REGION};
+}
+
+sub name
+{
+	my $self = shift;
+	if (@_) {$self->{NAME} = $_[0]};
+	$self->{NAME} = undef if (!defined $self->{NAME});
+	return $self->{NAME};
+}
+
+sub timezone
+{
+	my $self = shift;
+	if (@_) {$self->{TIMEZONE} = $_[0]};
+	$self->{TIMEZONE} = undef if (!defined $self->{TIMEZONE});
+	return $self->{TIMEZONE};
 }
 
 1;

@@ -56,6 +56,10 @@ GetOptions
         'help|?'        => \$help,
 ) or die ("Syntax Error!  Try $0 --help");
 
+die(usage()) if ($help || !defined($REGION));
+
+# Initialise the base object..
+# This will check the region is valid (if appropriate) for the country
 my $tv = XML::TV->new(
 			Debug	=> $debug,
 			Verbose	=> $verbose,
@@ -70,5 +74,14 @@ my $tools = XML::TV::ToolBox->new(
 				 );
 
 @DUPELICATE_CHANNELS = $tools->get_duplicate_channels(@dupes) if (@dupes and scalar @dupes);
+@IGNORE_CHANNELS = split(/,/,$ignorechannels) if (defined($ignorechannels));
+@INCLUDECHANNELS = split(/,/,$includechannels) if (defined($includechannels));
+
+
+# Get Icons now will go in the regions but we should do it now(ish)
+#getFVInfo($ua);
+
+
+
 
 print $tv->out;
